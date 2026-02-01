@@ -128,6 +128,8 @@ const App: React.FC = () => {
   const [isMuted, setIsMuted] = useState(false);
   const noBtnRef = useRef<HTMLButtonElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const celebrationSoundRef = useRef<HTMLAudioElement | null>(null);
+  const whooshSoundRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const audio = new Audio('https://www.bensound.com/bensound-music/bensound-love.mp3');
@@ -148,6 +150,24 @@ const App: React.FC = () => {
     };
   }, []);
 
+  // Initialize sound effects
+  useEffect(() => {
+    // Celebration sound - cheerful party sound
+    const celebrationSound = new Audio('https://www.soundjay.com/human/sounds/applause-01.mp3');
+    celebrationSound.volume = 0.7;
+    celebrationSoundRef.current = celebrationSound;
+
+    // Whoosh sound for dodging
+    const whooshSound = new Audio('https://www.soundjay.com/mechanical/sounds/cartoon-boing-1.mp3');
+    whooshSound.volume = 0.4;
+    whooshSoundRef.current = whooshSound;
+
+    return () => {
+      celebrationSoundRef.current = null;
+      whooshSoundRef.current = null;
+    };
+  }, []);
+
   useEffect(() => {
     if (accepted && audioRef.current) {
       const fadeInterval = setInterval(() => {
@@ -165,6 +185,12 @@ const App: React.FC = () => {
     if (audioRef.current) {
       audioRef.current.muted = !audioRef.current.muted;
       setIsMuted(audioRef.current.muted);
+    }
+    if (celebrationSoundRef.current) {
+      celebrationSoundRef.current.muted = !celebrationSoundRef.current.muted;
+    }
+    if (whooshSoundRef.current) {
+      whooshSoundRef.current.muted = !whooshSoundRef.current.muted;
     }
   };
 
@@ -228,10 +254,21 @@ const App: React.FC = () => {
     setShaking(true);
     setTimeout(() => setShaking(false), 200);
     setTimeout(() => setDodgeMessage(""), 1000);
-  }, [messages, accepted]);
+
+    // Play boing/whoosh sound when button dodges
+    if (whooshSoundRef.current && !isMuted) {
+      whooshSoundRef.current.currentTime = 0;
+      whooshSoundRef.current.play().catch(() => {});
+    }
+  }, [messages, accepted, isMuted]);
 
   const handleYesClick = () => {
     setAccepted(true);
+    // Play celebration sound
+    if (celebrationSoundRef.current && !isMuted) {
+      celebrationSoundRef.current.currentTime = 0;
+      celebrationSoundRef.current.play().catch(() => {});
+    }
   };
 
   const questionGif = "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYWh2bTJyY3NqZnZhZGxyZjg2Y2FlanZhYmI2Y3BqOGVlNWkxamRxMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/YQYTflmPzgiwE9cudP/giphy.gif"; 
